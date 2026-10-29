@@ -1,0 +1,35 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  # OpenCode ships plugin API changes often; catch a breaking release before colleagues update.
+  schedule:
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - run: pnpm install --frozen-lockfile
+      - name: Use the latest plugin API
+        run: pnpm add -D @opencode/plugin@latest
+      - run: pnpm run typecheck
+      - run: pnpm test
+
+      - name: Install the latest OpenCode CLI
+        run: npm install -g @opencode/cli@latest && opencode --version
+      - name: Smoke test against a real OpenCode server
+        run: OPENCODE_BIN="$(command -v opencode)" pnpm run smoke

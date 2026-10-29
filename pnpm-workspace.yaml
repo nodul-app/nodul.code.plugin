@@ -1,0 +1,3 @@
+# OpenCode publishes these alongside each app release; CI tests the newest one on purpose.
+minimumReleaseAgeExclude:
+  - '@opencode/*'
