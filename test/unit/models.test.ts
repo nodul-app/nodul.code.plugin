@@ -37,6 +37,7 @@ describe("toModels", () => {
       id: "ru-2/deepseek-v4.1-flash",
       modelID: "ru-2/deepseek-v4.1-flash",
       providerID: "nodul",
+      // The name already mentions the region, so no suffix is added.
       name: "Name ru-2/deepseek-v4.1-flash",
       package: "@opencode/ai/providers/openai-compatible",
       settings: { baseURL: BASE, provider: "nodul" },
@@ -47,6 +48,24 @@ describe("toModels", () => {
     expect(model!.cost[0]!.input).toBeCloseTo(3.9)
     expect(model!.cost[0]!.output).toBeCloseTo(6.5)
     expect(model!.variants.map((v) => String(v.id))).toEqual(["low", "medium", "high"])
+  })
+
+  test("marks Russia-region models with their prefix", () => {
+    const names = toModels(
+      [
+        remote("ru-1/deepseek-ai/DeepSeek-V4-Pro", { name: "DeepSeek-V4-Pro" }),
+        remote("ru-2/deepseek-v4.1-flash", { name: "DeepSeek V4.1 Flash" }),
+        remote("deepseek/deepseek-v4.1-flash", { name: "DeepSeek: DeepSeek V4.1 Flash" }),
+        remote("ru-1/x", { name: "" }),
+      ],
+      BASE,
+    ).map((m) => m.name)
+    expect(names).toEqual([
+      "DeepSeek-V4-Pro · ru-1",
+      "DeepSeek V4.1 Flash · ru-2",
+      "DeepSeek: DeepSeek V4.1 Flash",
+      "ru-1/x",
+    ])
   })
 
   test("falls back when the router omits limits", () => {

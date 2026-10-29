@@ -18,6 +18,16 @@ export interface RouterModel {
 const INPUT: Record<string, string> = { text: "text", image: "image", file: "pdf", audio: "audio", video: "video" }
 const EFFORTS = ["low", "medium", "high"] as const
 
+/**
+ * Russia-region models are `ru-1/…`, `ru-2/…` (router.nodul.ru/docs/ru/models-and-routing), but the
+ * router's names don't say so and the model picker shows only the name.
+ */
+function displayName(remote: RouterModel) {
+  const name = remote.name || remote.id
+  const region = remote.id.match(/^(ru-\d+)\//)?.[1]
+  return region && !name.includes(region) ? `${name} · ${region}` : name
+}
+
 /** Per-token price string to a per-million price. The router prices in PnP; they are passed through unconverted. */
 function perMillion(value: string | undefined) {
   const number = Number(value)
@@ -47,7 +57,7 @@ export function toModels(data: readonly unknown[], baseURL: string): Model.Info[
 
     const model = {
       ...base,
-      name: remote.name || remote.id,
+      name: displayName(remote),
       package: PACKAGE,
       settings: { baseURL, provider: PROVIDER_ID },
       capabilities: { tools: true, input: input.length ? input : ["text"], output: ["text"] },
