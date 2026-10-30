@@ -17,6 +17,11 @@ export interface RouterModel {
 // The router reports documents as `file`; OpenCode calls the same input `pdf`.
 const INPUT: Record<string, string> = { text: "text", image: "image", file: "pdf", audio: "audio", video: "video" }
 const EFFORTS = ["low", "medium", "high"] as const
+/**
+ * OpenCode asks for the whole output limit as `max_tokens`, and the router reserves `max_tokens` × the
+ * completion price before the call, so a catalog limit like 393216 turns into a 402 on a small balance.
+ */
+const MAX_OUTPUT = 128_000
 
 /**
  * Russia-region models are `ru-1/…`, `ru-2/…` (router.nodul.ru/docs/ru/models-and-routing), but the
@@ -71,7 +76,10 @@ export function toModels(data: readonly unknown[], baseURL: string): Model.Info[
           cache: { read: perMillion(remote.pricing?.input_cache_read), write: 0 },
         },
       ],
-      limit: { context, output: positive(remote.top_provider?.max_completion_tokens) ?? Math.min(32_000, context) },
+      limit: {
+        context,
+        output: Math.min(MAX_OUTPUT, positive(remote.top_provider?.max_completion_tokens) ?? Math.min(32_000, context)),
+      },
     }
     // Money fields are branded numbers in the schema; the brand is type-only.
     return [model as unknown as Model.Info]

@@ -1,6 +1,6 @@
 {
   "name": "@nodul/opencode-plugin",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Nodul Router as the only LLM provider in OpenCode, with the models your key can use",
   "type": "module",
   "private": true,

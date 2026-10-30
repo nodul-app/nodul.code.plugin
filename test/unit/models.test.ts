@@ -42,7 +42,7 @@ describe("toModels", () => {
       package: "@opencode/ai/providers/openai-compatible",
       settings: { baseURL: BASE, provider: "nodul" },
       capabilities: { tools: true, input: ["text", "image", "pdf"], output: ["text"] },
-      limit: { context: 1048576, output: 393216 },
+      limit: { context: 1048576, output: 128000 },
       enabled: true,
     })
     expect(model!.cost[0]!.input).toBeCloseTo(3.9)
@@ -66,6 +66,18 @@ describe("toModels", () => {
       "DeepSeek: DeepSeek V4.1 Flash",
       "ru-1/x",
     ])
+  })
+
+  test("caps the output limit at 128000 and keeps smaller ones", () => {
+    const outputs = toModels(
+      [
+        remote("a/huge"),
+        remote("a/small", { top_provider: { context_length: 1048576, max_completion_tokens: 65536 } }),
+        remote("a/none", { top_provider: { context_length: 1048576 } }),
+      ],
+      BASE,
+    ).map((m) => m.limit.output)
+    expect(outputs).toEqual([128000, 65536, 32000])
   })
 
   test("falls back when the router omits limits", () => {
